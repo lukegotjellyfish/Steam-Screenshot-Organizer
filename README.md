@@ -3,7 +3,7 @@
  Extensive ChatGPT crap code
 
 # How to use
-python sort_screenshots.py
+>python sort_screenshots.py
 
 Uses the current working directory (where you call python from)
 Just whack it into your screenshots folder
