@@ -111,9 +111,9 @@ if data:
                 
             dest = f"{CWD}/{sanitised_game_name}/{filename}"
             add = 1
-            print(f"Checking for {CWD}/{sanitised_game_name}/{filename}")
+            #print(f"Checking for {CWD}/{sanitised_game_name}/{filename}")
             if os.path.exists(f"{CWD}/{sanitised_game_name}/{filename}"):
-                print("Found")
+                print(f"Found duplicate filename at {dest}, generating new name")
                 while True:
                     dest=f"{CWD}/{sanitised_game_name}/{filename[:-4]}_({add}).png"
                     if os.path.exists(dest):
@@ -121,4 +121,4 @@ if data:
                     else:
                         break
             shutil.move(f"{CWD}/{filename}", dest)
-            print(f"dest = {dest}")
+            print(f"File saved as {dest}")
