@@ -38,6 +38,7 @@ def fallback_game_identify(id: str):
         data = None  # No valid data available
 
 def find_game_name(id):
+    game_name = False
     try:
         game_name = searchable_data[int(id)]["name"]
         print(f"Found {game_name}-{id} in JSON")
@@ -98,6 +99,9 @@ if data:
         if filename.lower().endswith(".png"):
             game_id = filename[:-4].split("_", 1)[0]
             game_name = find_game_name(game_id)
+            if game_name = False:
+                print(f"Skipping {filename}, invalid ID")
+                continue
             sanitised_game_name = safe_filename(game_name)
             if not os.path.exists(f"{CWD}/{sanitised_game_name}"):
                 os.mkdir(f"{CWD}/{sanitised_game_name}")
