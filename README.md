@@ -3,6 +3,8 @@
  Extensive ChatGPT crap code
 
 # How to use
+## This will overwrite existing files of the same name because I'm dumb
+
 >python sort_screenshots.py
 
 Uses the current working directory (where you call python from)
