@@ -32,7 +32,10 @@ def fallback_game_identify(id: str):
         # Parse the JSON response
         data = response.json()
         # Return App Name
-        return data[id]["data"]["name"]
+        try:
+            return data[id]["data"]["name"]
+        except KeyError:
+            return False
     else:
         print(f"Failed to fetch data from the API. Status code: {response.status_code}")
         data = None  # No valid data available
@@ -99,7 +102,7 @@ if data:
         if filename.lower().endswith(".png"):
             game_id = filename[:-4].split("_", 1)[0]
             game_name = find_game_name(game_id)
-            if game_name = False:
+            if game_name == False:
                 print(f"Skipping {filename}, invalid ID")
                 continue
             sanitised_game_name = safe_filename(game_name)
