@@ -108,4 +108,17 @@ if data:
             sanitised_game_name = safe_filename(game_name)
             if not os.path.exists(f"{CWD}/{sanitised_game_name}"):
                 os.mkdir(f"{CWD}/{sanitised_game_name}")
-            shutil.move(f"{CWD}/{filename}", f"{CWD}/{sanitised_game_name}/{filename}")
+                
+            dest = f"{CWD}/{sanitised_game_name}/{filename}"
+            add = 1
+            print(f"Checking for {CWD}/{sanitised_game_name}/{filename}")
+            if os.path.exists(f"{CWD}/{sanitised_game_name}/{filename}"):
+                print("Found")
+                while True:
+                    dest=f"{CWD}/{sanitised_game_name}/{filename[:-4]}_({add}).png"
+                    if os.path.exists(dest):
+                        add += 1
+                    else:
+                        break
+            shutil.move(f"{CWD}/{filename}", dest)
+            print(f"dest = {dest}")
