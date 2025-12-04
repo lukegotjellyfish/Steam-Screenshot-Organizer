@@ -8,6 +8,18 @@ import unicodedata
 import time
 
 
+
+# Define constants
+API_KEY = "YOUR_STEAM_API_KEY_HERE"
+URL = f'https://api.steampowered.com/IStoreService/GetAppList/v1/?key={API_KEY}&max_results=50000'
+searchable_data = {}
+FILE_NAME = 'SteamAppList.json'
+MAX_AGE = 28 * 24 * 60 * 60  # Days, houors, minutes, seconds
+MAX_AGE_STR = f"{MAX_AGE/24/60/60}d"
+GAMEID_CACHE = {}
+CWD = os.getcwd()
+
+
 def safe_filename(s):
     # Normalize the string (remove accents, symbols)
     #s = unicodedata.normalize('NFKD', s)
@@ -43,25 +55,20 @@ def fallback_game_identify(id: str):
 def find_game_name(id):
     game_name = False
     try:
-        game_name = searchable_data[int(id)]["name"]
-        print(f"Found {game_name}-{id} in JSON")
+        game_name = searchable_data[id]
+        #print(f"Found {game_name}-{id} in JSON")
     except KeyError:
         try:
             game_name = GAMEID_CACHE[id]
-            print(f"Found {game_name}-{id} in cached individual searches")
+            #print(f"Found {game_name}-{id} in cached individual searches")
         except KeyError:
             game_name = fallback_game_identify(id)
             GAMEID_CACHE[id] = game_name
-            print(f"Found {game_name}-{id} in individual search")
+            #print(f"Found {game_name}-{id} in individual search")
     
     return game_name
+    
 
-# Define constants
-URL = 'https://api.steampowered.com/ISteamApps/GetApplist/v0001'
-FILE_NAME = 'SteamAppList.json'
-MAX_AGE = 72 * 60 * 60  # 72 hours in seconds
-GAMEID_CACHE = {}
-CWD = os.getcwd()
 
 # Check if the file exists and is less than 24 hours old
 if os.path.exists(FILE_NAME):
@@ -69,10 +76,10 @@ if os.path.exists(FILE_NAME):
     if file_age < MAX_AGE:
         # Load data from the existing file
         with open(FILE_NAME, 'r', encoding='utf-8-sig') as file:
-            data = json.load(file)
-            print("Loaded data from JSON <72h old.")
+            searchable_data = json.load(file)
+            print(f"Loaded data from JSON <{MAX_AGE_STR} old.")
     else:
-        print("JSON is >72h old. Fetching data from API...")
+        print(f"JSON is >{MAX_AGE_STR} old. Fetching data from API...")
         fetch_new = True
 else:
     print("JSON does not exist. Fetching data from the API...")
@@ -80,22 +87,42 @@ else:
 
 # Fetch data from the API if needed
 if 'fetch_new' in locals():
-    response = requests.get(URL)
+    
+    LAST_APPID = 0
+    while True:
+        response = requests.get(URL+f"&last_appid={LAST_APPID}")
 
-    if response.status_code == 200:
-        # Parse the JSON response
-        data = response.json()
-        # Save the JSON data to a file
-        with open(FILE_NAME, 'w', encoding='utf-8-sig') as file:
-            json.dump(data, file, ensure_ascii=False, indent=4)
-        print(f"JSON saved to {FILE_NAME}.")
-    else:
-        print(f"Failed to fetch JSON. Status code: {response.status_code}")
-        data = None  # No valid data available
+        if response.status_code == 200:
+            # Parse the JSON response
+            new_data = response.json()
+            formatted_data = {}
+            for item in new_data["response"]["apps"]:
+                formatted_data[item["appid"]] = item["name"]
+            #input(formatted_data)
+            if searchable_data != {}:
+                print(searchable_data)
+                searchable_data.update(formatted_data)
+            else:
+                searchable_data = formatted_data
+            #data.update(response.json())
+            #print(data)
+            try:
+                LAST_APPID = new_data["response"]["last_appid"]
+            except KeyError:
+                # Found all games
+                break
+        else:
+            print(f"Failed to fetch JSON. Status code: {response.status_code}")
+            break
+
+    # Save the JSON data to a file
+    print(f"JSON saved to {FILE_NAME}.")
+    with open(FILE_NAME, 'w', encoding='utf-8-sig') as file:
+        json.dump(searchable_data, file, ensure_ascii=False, indent=4)
+
 
 # At this point, `data` contains the JSON data, whether loaded from a file or fetched from the API
-if data:
-    searchable_data = {app['appid']: {key: value for key, value in app.items() if key != 'appid'} for app in data['applist']['apps']['app']}
+if searchable_data:
     #with open("a.test", "w", encoding="utf-8") as f: f.write(str(searchable_data))
     #print(json.dumps(data, indent=4))  # Pretty-print the JSON for debugging
     for filename in os.listdir(CWD):
@@ -121,4 +148,4 @@ if data:
                     else:
                         break
             shutil.move(f"{CWD}/{filename}", dest)
-            print(f"File saved as {dest}")
+            print(f"File saved at {dest}")
