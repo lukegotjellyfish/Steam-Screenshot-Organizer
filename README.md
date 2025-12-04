@@ -4,7 +4,7 @@
  Extensive ChatGPT crap code
 
 # How to use
-Just whack sort_screenshots.py it into your extermal steam screenshots folder
+Just whack sort_screenshots.py it into your external steam screenshots folder
 
 >python sort_screenshots.py
 
